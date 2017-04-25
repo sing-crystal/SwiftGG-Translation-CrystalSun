@@ -190,8 +190,8 @@ class NetworkService {
 
         let session = NSURLSession.sharedSession()
         task = session.dataTaskWithRequest(mutableRequest, completionHandler: { data, response, error in
-            // 判断调用是否成功 Decide whether the response is success or failure and call
-            // 合理回调 proper callback.
+            // 判断调用是否成功
+            // 回调处理
         })
 
         task?.resume()
@@ -220,7 +220,7 @@ class BackendService {
         let url = conf.baseURL.URLByAppendingPathComponent(request.endpoint)
 
         var headers = request.headers
-        // 如果存在，设置 authentication token
+        // 必要时设置 authentication token
         headers?["X-Api-Auth-Token"] = BackendAuth.shared.token
 
         service.request(url: url, method: request.method, params: request.parameters, headers: headers, success: { data in
@@ -231,7 +231,7 @@ class BackendService {
             success?(json)
 
             }, failure: { data, error, statusCode in
-                // Do stuff you need, and call failure block.
+                // 错误处理，并调用错误处理代码
         })
     }
 
@@ -333,7 +333,7 @@ public class NetworkOperation: NSOperation {
         }
     }
 
-    /// Used only by subclasses. Externally you should use `cancel`.
+    /// 只用于子类，外部调用时应使用 `cancel`.
     func finish() {
         self.executing = false
         self.finished = true
@@ -428,27 +428,13 @@ public class NetworkQueue {
 * 可以构建一个优先级队列用于提前执行一些请求，以便更快地得到结果。
 
 
-> In the `start` method the service executes request that is created internally in the operation’s constructor. `handleSuccess` and `handleFailure` methods are passed as a callbacks for `request(_:success:failure:)` method of a service. IMO this makes the code more clean, and it is still readable.
->
-> Operations are passed to a `NetworkQueue` object that is a singleton and can queue every operation. For now I keep it as simple as possible:
->
-> ```
-> Code
-> ```
->
-> What are advantages of executing operations in one place?
->
-> - Easily cancellation of all network operations.
-> - Cancellation all operations that are downloading images or other operations that are requesting data that is not needed to provide user a basic experience of using the app while network connection is weak. E.g. you would like to prevent downloading images when user is on weak connection.
-> - You can build a priority queue and execute some requests first to get answer faster.
-
 # 和Core Data共处
 
-这是我不得不推迟发表这边文章的原因。在之前的几个网络层版本中，`Operation` 都会返回Core Data对象。接收到的响应会被解析并转换成 Core Data 对象。可是这种方案远远不够完美。
+这是我不得不推迟发表这篇文章的原因。在之前的几个网络层版本中，`Operation` 都会返回 Core Data 对象。接收到的响应会被解析并转换成 Core Data 对象。可是这种方案远远不够完美。
 
 - `SignInOperation `需要知道 Core Data 是个什么东西。由于我把数据模型独立出来了，因此网络库也需要知晓数据模型。
 - 每个 `SignInOperation` 都需要增加一个额外的 `NSManagedObjectContext` 参数，用来决定在什么上下文执行操作。
-- 每次接收到响应并准备调用 `success` 的代码之前，它都会在 Core Data 上下文中查找对象，然后访问磁盘并把它提取出来。我觉得这是个不足的地方，因为你并不是每次都想要创建一个 Core Data 对象的。
+- 每次接收到响应并准备调用 `success` 的代码之前，都会在 Core Data 上下文中查找对象，然后访问磁盘并将其提取出来。我觉得这是个不足的地方，并不是每次都想创建 Core Data 对象。
 
 所以我想到应该把 Core Data 完完全全地从网络层中分离出去。于是创建了一个中间层，其实也就是一些在解析响应时创建的对象。
 
@@ -558,7 +544,7 @@ final class ArrayResponseMapper<A: ParsedItem> {
 }
 ```
 
-其中 `process` 静态方法的参数分别是 `obj` 和 `mapper` 方法，成功解析之后会返回一个数组。如果有某一项解析失败，你可以抛出一个错误，或者更糟地直接返回一个空数组作为该映射器的结果，这都取决于你。另外，这个映射器希望传给它的 `obj` 参数（从后端返回的响应数据）是个 JSON 数组。
+其中 `process` 静态方法的参数分别是 `obj` 和 `mapper` 方法，成功解析之后会返回一个数组。如果有某一项解析失败，可以抛出一个错误，或者更糟地直接返回一个空数组作为该映射器的结果，你来决定。另外，这个映射器希望传给它的 `obj` 参数（从后端返回的响应数据）是个 JSON 数组。
 
 下面是整个网络层的 UML 图：
 
@@ -575,3 +561,4 @@ final class ArrayResponseMapper<A: ParsedItem> {
 * 最大的优点在于，可以很容易地新增类似上文提到的 `Operation`，而不用关心 Core Data 的存在。
 * 可以轻易地让代码覆盖率接近100%，而无需考虑如何覆盖某个难搞的情形，因为根本就不存在这么难搞的情形！
 * 可以在其他类似的复杂应用中很容易地复用它的核心代码。
+
