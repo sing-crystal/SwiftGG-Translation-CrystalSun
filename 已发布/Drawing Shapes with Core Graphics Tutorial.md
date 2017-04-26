@@ -12,7 +12,7 @@ description:
 作者=Arthur Knopper
 原文日期=2016/10/06
 译者=Crystal Sun
-校对=
+校对=Cwift
 定稿=
 发布时间=
 
@@ -36,17 +36,17 @@ Storyboard 现在看起来应该如下图所示：
 
 ![](https://static1.squarespace.com/static/52428a0ae4b0c4a5c2a2cede/t/57f49445be65944d4a76b86b/1475646542988/?format=1000w)
 
-选中一个 button，到 Attribute Inspector 中，在 View 这个区域里，把 Tag 的值改成0，其他的两个 button 的 Tag 值分别改成 1 和 2，我们会在后面用到这个值，这样就能知道哪个 button 被点击了。
+选中一个 button，到 Attribute Inspector 中，在 View 这个区域里，把 Tag 的值改成 0，其他的两个 button 的 Tag 值分别改成 1 和 2，我们会在后面用到这个值，这样就能知道哪个 button 被点击了。
 
 ![](https://static1.squarespace.com/static/52428a0ae4b0c4a5c2a2cede/t/57f4b00ecd0f6802f4e10afe/1475653654088/?format=500w)
 
-打开 Assistant Editor，确保 **ViewController.swift** 文件可见。按住 Ctrol 键，选中 “Lines” 按钮，将其拖拽到 ViewController 泪下面，创建下图所示的 Action：
+打开 Assistant Editor，确保 **ViewController.swift** 文件可见。按住 Ctrol 键，选中 “Lines” 按钮，将其拖拽到 ViewController 类下面，创建下图所示的 Action：
 
 ![](https://static1.squarespace.com/static/52428a0ae4b0c4a5c2a2cede/t/57f4946bbe65944d4a76b920/1475646580411/?format=750w)
 
-选中其他的 button 按钮，进行同样的操作。每次按钮被点击，都会执行 IBAction 方法。
+选中其他的按钮，进行同样的操作。每次按钮被点击，都会执行 IBAction 方法。
 
-绘图行为在自定义的 view 里进行，给工程添加一个新文件，在菜单栏选择 File -> New File -> iOS -> Cocoa Touch Class。Class 的名字为：**ShapeView**，Subclass 是 UIView。
+绘图行为在自定义的 View 里进行，给工程添加一个新文件，在菜单栏选择 File -> New File -> iOS -> Cocoa Touch Class。Class 的名字为：**ShapeView**，父类是 UIView。
 
 ![](https://static1.squarespace.com/static/52428a0ae4b0c4a5c2a2cede/t/57f494b5440243d357b10f23/1475646657351/?format=1500w)
 
@@ -56,7 +56,7 @@ Storyboard 现在看起来应该如下图所示：
 var currentShapeType: Int = 0
 ```
 
-这个 currentShapeType 属性用于选择绘制对应的图形。接下来进行初始化：
+这个 currentShapeType 属性用于筛选方法以便绘制对应的图形。接下来进行初始化：
 
 ```swift
 init(frame:CGRect, shape: Int){
@@ -142,9 +142,9 @@ func drawCircle() {
 }
 ```
 
-1. Graphic Context（图形内容）是 graphic destination，如果想画一个 view，view 就是你的 Graphic Context（图形内容）。需要给 Graphic Context 一个参考。 
-2. path 是一组线、弧形、曲线的组合，可以绘制在当前的图形内容（graphic context）上，从而构成复杂的图形。在这里，就画一些线，线的粗细为 5。
-3. path 结束，画完图形内容（graphic context）。
+1. Graphic Context（图形上下文）仿佛是一块画布，如果想在一个 view 上绘制，view 就是你的 Graphic Context。你需要得到 Graphic Context 的引用。 
+2. path 是一组直线、弧形、曲线的组合，可以绘制在当前的图形内容 Graphic Context 上，从而构成复杂的图形。这里就画了一些直线，线的粗细为 5。
+3. path 的工作结束，把图形绘制到 Graphic Context 上。
 4. 使用 CGContextAddRect 来画一个矩形，矩形的边框颜色为灰色。
 5. 还是之前的矩形，填充色是绿色。
 6. 使用 CGContextAddArc 来画一个圆。
