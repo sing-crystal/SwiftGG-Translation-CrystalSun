@@ -18,4 +18,4 @@ description:
 
 <!--此处开始正文-->
 
-用 UIKit Dynamics 可以让指定对象具备碰撞行为。
+用 UIKit Dynamics 可以让指定对象具备碰撞行为。需要翻译
