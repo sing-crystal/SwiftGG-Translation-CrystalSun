@@ -22,7 +22,7 @@ description:
 
 ### 设置工程
 
-打开 Xcode，创建一个 Single View Application。
+打开 Xcode，创建一个 Single View Application 工程。
 
 ![](https://static1.squarespace.com/static/52428a0ae4b0c4a5c2a2cede/t/58ff88928419c2b2a27d0754/1493141675229/single-view-xcode-template?format=1500w)
 
@@ -30,26 +30,160 @@ Product Name 使用 **IOS10CollisionDectectionTutorial**（译者注：这里的
 
 ![](https://static1.squarespace.com/static/52428a0ae4b0c4a5c2a2cede/t/58f601fed2b857170ca0ce82/1492517402522/line-view-uiview?format=1500w)
 
-![]()
+用自定义的 UIView 画一些线，在 drawRect 方法中写点代码。选择 File -> New File -> iOS -> Source -> Cocoa Touch Class。Class 命名为 LineView，其父类为 UIView。
 
-![]()
+![](https://static1.squarespace.com/static/52428a0ae4b0c4a5c2a2cede/t/58f601fed2b857170ca0ce82/1492517402522/line-view-uiview?format=1500w)
 
-![]()
+打开 **LineView.swift** 文件，想要画线需要先创建一个帮手：**drawLineFromPoint(fromX:toPoint:pointY:)** 方法。
 
-![]()
+```swift
+func drawLineFromPoint(fromX: CGFloat, toPoint toX: CGFloat, pointY y: CGFloat) {
+    let currentContext = UIGraphicsGetCurrentContext()
+        
+    if let currentContext = currentContext {
+        currentContext.setLineWidth(5.0)
+        currentContext.move(to: CGPoint(x: fromX, y: y))
+        currentContext.addLine(to: CGPoint(x: toX, y: y))
+        currentContext.strokePath();
+    }}
+```
 
-![]()
+线的宽度为 5 points。接下来，改写 **drawRect** 方法：
 
-![]()
-
-![]()
-
-![]()
-
-![]()
-
-![]()
+```swift
+override func draw(_ rect: CGRect) {
+        
+    drawLineFromPoint(fromX: 0, toPoint: bounds.size.width/3, pointY: bounds.size.height - 100.0)
+    drawLineFromPoint(fromX: bounds.size.width/3, toPoint:bounds.size.width*0.67, pointY:bounds.size.height - 150.0)
+    drawLineFromPoint(fromX: bounds.size.width*0.67, toPoint:bounds.size.width, pointY:bounds.size.height - 100.0)}
+```
 
 
+
+![](https://static1.squarespace.com/static/52428a0ae4b0c4a5c2a2cede/t/58f61c37d1758e8294911b8f/1492524185945/custom-class-identity-inspector?format=500w)
+
+**运行**工程，线已经出现在屏幕上了。
+
+![](https://static1.squarespace.com/static/52428a0ae4b0c4a5c2a2cede/t/58f61d4cc534a5b618a2ccfb/1492589254073/?format=750w)
+
+接下来，拖拽一个 Button 控件到 Storyboard 上，标题改为 “Next”。选中该 Button，点击 Auto Layout 的 Align 按钮，勾选 “Horizontally in Container”，点击 “Add 1 Constraint”。
+
+![](https://static1.squarespace.com/static/52428a0ae4b0c4a5c2a2cede/t/58f7ab9db3db2b7177ee0892/1492626382150/auto-layout-horizontally-in-container?format=750w)
+
+继续选中该 Button，点击 Auto Layout 的 Pin 按钮，选中上边距的约束线，点击 “Add 1 Constraint”。
+
+![](https://static1.squarespace.com/static/52428a0ae4b0c4a5c2a2cede/t/58f7ac28f5e2316d60eb2495/1492626495002/button-pin-to-top?format=750w)
+
+主界面看起来应如下图所示：
+
+![](https://static1.squarespace.com/static/52428a0ae4b0c4a5c2a2cede/t/58f7a9f61b10e35a8888d485/1492625933682/collision-detection-storyboard?format=750w)
+
+点击 Assistant Editor，确保 ViewController.swift 文件可见，按住 Control 键将该 Button 拖拽到 ViewController 类里，创建下列 Action 链接：
+
+![](https://static1.squarespace.com/static/52428a0ae4b0c4a5c2a2cede/t/58f7a9c9579fb39af544e8a2/1492625895137/release%3Dsquare-action?format=750w)
+
+在 **ViewController.swift** 文件中，需要声明一些变量，来跟踪记录 view，如下所示：
+
+```swift
+var squareViews:[UIView] = []
+var animator:UIDynamicAnimator!
+var colors:[UIColor] = []
+var centerPoint:[CGPoint] = []
+var sizeOfSquare:CGSize!
+```
+
+squareViews 属性
+
+```swift
+var leftBoundaryHeight:CGFloat!
+var middleBoundaryHeight:CGFloat!
+var rightBoundaryHeight:CGFloat!
+var leftBoundaryWidth:CGFloat!
+var middleBoundaryWidth:CGFloat!
+var leftSquareCenterPointX:CGFloat!
+var middleSquareCenterPointX:CGFloat!
+var rightSquareCenterPointX:CGFloat!
+var squareCenterPointY:CGFloat!
+```
+
+这些属性
+
+```swift
+func setBoundaryValues() {
+    leftBoundaryHeight = view.bounds.size.height - 100.0
+    middleBoundaryHeight = view.bounds.size.height - 150.0
+    rightBoundaryHeight = view.bounds.size.height - 100.0
+    leftBoundaryWidth = view.bounds.size.width/3
+    middleBoundaryWidth = view.bounds.size.width * 0.67
+    leftSquareCenterPointX = view.bounds.size.width/6
+    middleSquareCenterPointX = view.bounds.size.width/2
+    rightSquareCenterPointX = view.bounds.size.width * 0.84
+    squareCenterPointY = view.bounds.size.height - 400
+}
+```
+
+在 **viewDidLoad** 里，
+
+```swift
+override func viewDidLoad() {
+    super.viewDidLoad()
+        
+    setBoundaryValues()
+            
+    // 创建颜色数组
+    colors = [UIColor.red, UIColor.blue, UIColor.green, UIColor.purple, UIColor.gray]
+            
+    // 创建方块的中心点（centerpoint）
+    let leftCenterPoint = CGPoint(x: leftSquareCenterPointX, y: squareCenterPointY)
+    let middleCenterPoint = CGPoint(x: middleSquareCenterPointX, y: squareCenterPointY)
+    let rightCenterPoint = CGPoint(x:rightSquareCenterPointX, y: squareCenterPointY)
+    centerPoint = [leftCenterPoint,middleCenterPoint,rightCenterPoint]
+            
+    // 设置方块的大小
+    sizeOfSquare = CGSize(width: 50.0, height: 50.0) 
+}
+```
+
+所以，
+
+```swift
+@IBAction func releaseSquare(_ sender: Any) {
+    let newView = UIView(frame: CGRect(x: 0.0, y: 0.0, width: sizeOfSquare.width, height: sizeOfSquare.height))
+        
+    let randomColorIndex = Int(arc4random()%5)
+    newView.backgroundColor = colors[randomColorIndex]
+        
+    let randomCenterPoint = Int(arc4random()%3)
+    newView.center = centerPoint[randomCenterPoint]
+        
+    squareViews.append(newView)
+    view.addSubview(newView)
+}
+```
+
+view
+
+```swift
+animator = UIDynamicAnimator(referenceView: view)
+
+// 创建重力
+let gravity = UIGravityBehavior(items: squareViews)
+animator.addBehavior(gravity)
+
+// 创建碰撞检测
+let collision = UICollisionBehavior(items: squareViews)
+        
+// 设置碰撞的边界
+collision.addBoundary(withIdentifier: "leftBoundary" as NSCopying, from: CGPoint(x: 0.0,y: leftBoundaryHeight), to: CGPoint(x: leftBoundaryWidth, y: leftBoundaryHeight))
+collision.addBoundary(withIdentifier: "middleBoundary" as NSCopying, from: CGPoint(x: view.bounds.size.width/3,y: middleBoundaryHeight), to: CGPoint(x: middleBoundaryWidth, y: middleBoundaryHeight))
+collision.addBoundary(withIdentifier: "rightBoundary" as NSCopying, from: CGPoint(x: middleBoundaryWidth,y: rightBoundaryHeight), to: CGPoint(x: view.bounds.size.width, y: rightBoundaryHeight))
+        
+collision.collisionMode = .everything
+animator.addBehavior(collision)
+```
+
+首先，给增加了重力行为
+
+![](https://static1.squarespace.com/static/52428a0ae4b0c4a5c2a2cede/t/58f7c5009de4bbbb2002c691/1492632856143/collision-detection-simulator?format=750w)
 
 可以从 [github](https://github.com/ioscreator/ioscreator) 上下载 **IOS10CollisionDectectionTutorial** 教程的源代码。
