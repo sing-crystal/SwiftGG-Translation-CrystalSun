@@ -9,7 +9,7 @@ description:
 
 ------
 
-原文链接=https://www.ioscreator.com/tutorials/facebook-ios-tutorial-ios10
+原文链接=https://www.ioscreator.com/tutorials/display-background-with-spritekit-ios-tutorial-ios10
 作者=Arthur Knopper
 原文日期=2017/01/17
 译者=Crystal Sun
