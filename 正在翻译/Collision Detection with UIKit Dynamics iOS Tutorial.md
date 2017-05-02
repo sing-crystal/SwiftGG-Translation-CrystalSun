@@ -92,7 +92,7 @@ var centerPoint:[CGPoint] = []
 var sizeOfSquare:CGSize!
 ```
 
-squareViews 属性
+squareViews 将包含所需的 view，view 需要颜色数组、centerPin 数组和 sizeOfSquare（方块的大小）这些属性。animator 属性要用于动画动作。接下来继续添加下列属性：
 
 ```swift
 var leftBoundaryHeight:CGFloat!
@@ -106,7 +106,7 @@ var rightSquareCenterPointX:CGFloat!
 var squareCenterPointY:CGFloat!
 ```
 
-这些属性
+需要上述属性来设置自定义的边界，给所有的方块添加一个开始点。首先，创建 setBoundaryValues 方法来设置上述属性。
 
 ```swift
 func setBoundaryValues() {
@@ -122,7 +122,7 @@ func setBoundaryValues() {
 }
 ```
 
-在 **viewDidLoad** 里，
+在 **viewDidLoad** 里，调用上述方法。然后设置剩下的属性值。
 
 ```swift
 override func viewDidLoad() {
@@ -144,7 +144,7 @@ override func viewDidLoad() {
 }
 ```
 
-所以，
+好了，现在每个 view 的尺寸是 50，有 5 种不同的颜色。接下来的事情都会在 **releaseNextSquare(sender:)** 方法中发生。
 
 ```swift
 @IBAction func releaseSquare(_ sender: Any) {
@@ -161,7 +161,7 @@ override func viewDidLoad() {
 }
 ```
 
-view
+创建了 view，centerPoint 的值是随机数，也赋值了颜色，该 view 添加到了主界面上，也添加到了数组中。在 **releaseSquare(sender:)** Action 方法的最后，添加剩下的代码。
 
 ```swift
 animator = UIDynamicAnimator(referenceView: view)
@@ -182,7 +182,7 @@ collision.collisionMode = .everything
 animator.addBehavior(collision)
 ```
 
-首先，给增加了重力行为
+首先，给方块下落的动作增加了重力，接下来，在自定义边界的基础上添加了碰撞行为。默认的碰撞模式是 UICollisionBehaviour 里的 UICollisionBehaviourMode.everything，也就是说，所有的元素都可以互相碰撞。**运行**工程，不停地按 Next 按钮，方块下落。
 
 ![](https://static1.squarespace.com/static/52428a0ae4b0c4a5c2a2cede/t/58f7c5009de4bbbb2002c691/1492632856143/collision-detection-simulator?format=750w)
 
