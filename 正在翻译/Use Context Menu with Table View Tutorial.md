@@ -1,4 +1,4 @@
-title: ""
+title: "Table View 中开启文本菜单功能"
 date: 
 tags: [IOSCREATOR]
 categories: []
@@ -9,9 +9,9 @@ description:
 
 ------
 
-原文链接=https://www.ioscreator.com/tutorials/facebook-ios-tutorial-ios10
+原文链接=https://www.ioscreator.com/tutorials/use-context-menu-with-table-view-tutorial-ios10
 作者=Arthur Knopper
-原文日期=2017/04/26
+原文日期=2017/01/09
 译者=Crystal Sun
 校对=
 定稿=
@@ -19,7 +19,7 @@ description:
 
 <!--此处开始正文-->
 
-借助 Social Framework，可以给自己的 App 添加社交网络分享的功能。在本节教程中，将使用 social framework 往 Facebook 上发布一条状态。本节教程使用的是 Xcode 8.3 和 iOS 10.3。
+长按所选的对象后，弹出文本菜单（Context Menu），允许用户进行剪切、复制、粘贴操作。默认情况下，文本菜单功能在 Table View 中是关闭状态。在本节教程中，将学习如何在 Table View Cell 中开启文本菜单功能，将所选的文本复制到 Text Filed（文本输入框）中。本节教程使用的是 Xcode 8.1 和 iOS 10。
 
 ### 设置工程
 
@@ -27,73 +27,102 @@ description:
 
 ![](https://static1.squarespace.com/static/52428a0ae4b0c4a5c2a2cede/t/58ff88928419c2b2a27d0754/1493141675229/single-view-xcode-template?format=1500w)
 
-Product Name 使用 **IOS10FacebookTutorial**，填写自己的 Organization Name 和 Organization Identifier，Language 一栏选择 Swift，Devices 一栏选择 iPhone。
+点击 Next。Product Name 使用 **IOS10ContextMenuTableViewTutorial**，填写自己的 Organization Name 和 Organization Identifier，Language 一栏选择 Swift，Devices 一栏选择 iPhone。
 
-![](https://static1.squarespace.com/static/52428a0ae4b0c4a5c2a2cede/t/58ff88c71b10e3c8c1dc6a0d/1493141718478/facebook-project?format=1500w)
+![](https://static1.squarespace.com/static/52428a0ae4b0c4a5c2a2cede/t/587284518419c2902d0b4038/1483899997903/?format=1500w)
 
+打开 **Main.storyboard** 文件，从 Object Library 中拖拽一个 Table View 到主界面，然后选中 Table View，找到 Attribute Inspector，在 Table View 部分，将 Prototype Cells 的值改为1。
 
+![](https://static1.squarespace.com/static/52428a0ae4b0c4a5c2a2cede/t/58728478414fb539f1673cc0/1483900034219/?format=500w)
 
-### 设置 Storyboard
+选中 Table View Cell，找到 Attribute Inspector ，在 Table View Cell 区域，将 Indentifier 的值设置为 “cell”。
 
-从 Object-Library（控件库）中拖拽一个 Button 到主界面，将其标题改为 *“Post to Facebook”*。选中该控件，点击 Storyboard 右下角 Auto Layout 的 Align 按钮，选择 “Horizontally in Container”，点击 “Add 1 Constraint”。
+![](https://static1.squarespace.com/static/52428a0ae4b0c4a5c2a2cede/t/58728493bf629afa514967a5/1483900060894/?format=750w)
 
-![](https://static1.squarespace.com/static/52428a0ae4b0c4a5c2a2cede/t/58ff890c1b10e3c8c1dc7050/1493141792034/auto-layout-horizontally-in-container?format=750w)
+选中 Table View，点击右下角的 Pin 按钮，点击上方、左、右三条线，选择 Height，设置成固定高度。在 Update Frames 的下拉菜单中选择 Items of New Contraints，接下来点击 “Add 4 Constraints”。
 
+![](https://static1.squarespace.com/static/52428a0ae4b0c4a5c2a2cede/t/587284b5725e2549f7b0a58c/1483900094417/?format=750w)
 
+从 Object Library 中拖拽一个 Text Field 控件，放到 Table View 的下方。按住 Control 键，将其拖拽到 Table View 上，松开 Control 键，选择 “Vertical Spacing” 和 “Center Horizontally”。
 
-仍然选中该 Button 控件，点击 Auto Layout 的 Pin 按钮，选中上面的线，点击 “Add 1 Constraint”。
+![](https://static1.squarespace.com/static/52428a0ae4b0c4a5c2a2cede/t/587285ead1758edd735361d8/1483900403738/Autolayout-Pinleftandright.png?format=500w)
 
-![](https://static1.squarespace.com/static/52428a0ae4b0c4a5c2a2cede/t/58ff89c62994caa7f86f42db/1493141974045/auto-layout-pin-to-top?format=750w)
+选中 Text Field，点击右下角的 Pin 按钮，选中左、右两条线。如下图添加约束。
 
+![](https://static1.squarespace.com/static/52428a0ae4b0c4a5c2a2cede/t/587286031e5b6c9fdaadb7b3/1483900432899/?format=750w)
 
+View Controller 需要成为 Table View 的代理（delegate）。选中 TableView，按住 Control 键，将其拖拽到 View Controller 顶部的黄色图标上，点击 dataSource，重复上述步骤，点击 delegate。
 
-Storyboard 看起来应如下图所示：
+![](https://static1.squarespace.com/static/52428a0ae4b0c4a5c2a2cede/t/58728664bebafb08e6a84d26/1483900526787/?format=300w)
 
-![](https://static1.squarespace.com/static/52428a0ae4b0c4a5c2a2cede/t/58ff8a0703596e67a225d6a2/1493142038417/facebook-storyboard?format=1000w)
-
-
-
-点击 Assistant Editor，确保 **ViewController.swift** 文件可见。Control 拖拽或右键点击拖拽，将 Button 控件拖拽到 ViewController 类下面，创建下列 Action。
-
-![](https://static1.squarespace.com/static/52428a0ae4b0c4a5c2a2cede/t/58ff8a62ff7c503f699573bd/1493142138444/post-to-facebook-action?format=750w)
-
-
-
-打开 **ViewController.swift** 文件，引入 social framework。
+对 Text Field 控件也重复上述步骤，使 View Controller 成为 Text Field 的代理（delegate）。然后打开 **ViewController.swift** 文件，将类的声明改成如下代码：
 
 ```swift
-import Social
+class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate {
 ```
 
-接下来实现 **postToFacebook** 方法：
+接着添加下列属性：
 
 ```swift
-@IBAction func postToFacebook(_ sender: Any) {
-    // 1
-    if SLComposeViewController.isAvailable(forServiceType: SLServiceTypeFacebook) {
-        // 2
-        if let controller = SLComposeViewController(forServiceType: SLServiceTypeFacebook) {
-            // 3
-            controller.setInitialText("Testing Posting to Facebook")
-            // 4
-            self.present(controller, animated:true, completion:nil)
-        }
-    }
-    else {
-        // 3
-        print("no Facebook account found on device")
-    }
+var pasteBoard = UIPasteboard.generalPasteboard()
+var tableData: [String] = ["dog","cat","fish"]
+```
+
+pasteBoard 属性将用于复制粘贴操作，tableData 存储展示在 Table View Cell 上的数据。接下来，如下所示修改 Table View 的 delegate 方法：
+
+```swift
+func numberOfSections(in tableView: UITableView) -> Int {
+    return 1
+}
+    
+func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    return tableData.count
+}
+    
+    
+func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+        
+    cell.textLabel?.text = tableData[indexPath.row]
+        
+    return cell
 }
 ```
 
-1. 检查设备上的 Facebook 账户是否可用。
-2. 创建 SLComposeViewController 对象，该对象用于显示 Facebook 状态发布界面和全部的功能。
-3. 设置发布 Facebook 状态的默认文案。
-4. 显示该 controller。
-5. 如果 Facebook 账户尚未设置，在控制台（console）里显示提示信息。
+Table View 现在会展示 tableData 数组中的值，想要开启文本菜单功能，需要实现以下三个 delegate 方法。
 
-**运行**程序，开始往 Facebook 上发状态，确保模拟器的 Facebook 账户已经设置好了，在模拟器的菜单栏 Settings -> Facebook 里可以设置。
+```swift
+func tableView(_ tableView: UITableView, shouldShowMenuForRowAt indexPath: IndexPath) -> Bool
+{
+    return true
+}
+    
+func tableView(_ tableView: UITableView, canPerformAction action: Selector, forRowAt indexPath: IndexPath, withSender sender: Any?) -> Bool {
+    if (action == #selector(UIResponderStandardEditActions.copy(_:))) {
+        return true
+    }
+    return false
+}
+    
+func tableView(_ tableView: UITableView, performAction action: Selector, forRowAt indexPath: IndexPath, withSender sender: Any?) {
+    let cell = tableView.cellForRow(at: indexPath)
+    pasteBoard.string = cell!.textLabel?.text
+}
+```
 
-![](https://static1.squarespace.com/static/52428a0ae4b0c4a5c2a2cede/t/58ff9349e3df280d3d0dbafe/1493144421077/facebook-simulator?format=750w)
+**tableView:shouldShowMenuForRowAt** 方法必须返回 true，才能长按显示文本菜单。**tableView:canPerformAction:forRowAt** 方法，让文本菜单只显示 copy（复制）一个选项。**tableView:performAction:forRowAt:withSender** 方法将选中的文本复制到 pasteBoard 变量中。
 
-可以从 [github](https://github.com/ioscreator/ioscreator) 上下载 **IOS10FacebookTutorial** 教程的源代码。
+最后，通过 **textFieldShouldReturn** 方法，在点击 Text Field 后让键盘消失。
+
+```swift
+func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+    self.view.endEditing(true)
+    return false
+}
+```
+
+**运行**工程，长按一行 Table View Cell，然后选择 copy（复制） 选项，粘贴到 Text Field（文本框）里。
+
+![](https://static1.squarespace.com/static/52428a0ae4b0c4a5c2a2cede/t/58728d2c1b631b6a2299ad67/1483902262012/?format=750w)
+
+可以从 [github](https://github.com/ioscreator/ioscreator) 上下载 **IOS10ContextMenuTableViewTutorial** 教程的源代码。
