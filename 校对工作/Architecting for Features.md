@@ -12,7 +12,7 @@ description: 这里是网页描述
 作者=Natasha The Robot
 原文日期=2017/03/12
 译者=saitjr
-校对=
+校对=Crystal Sun
 定稿=
 发布时间=
 
@@ -36,7 +36,7 @@ description: 这里是网页描述
 
 不过，分离要比想象中复杂。我推荐先从 Basem Emra 的「[用 Carthage 与 CocoaPods 打造跨 iOS，watchOS，tvOS 平台的 Swift 框架](http://basememara.com/creating-cross-platform-swift-frameworks-ios-watchos-tvos-via-carthage-cocoapods/)」入门。
 
-我自己还没独立做过 CocoaPods，更别说还是要依赖 Realm 的，所以我花了很多时间收集梳理。感谢带我入门的 [@aaalveee](https://twitter.com/aaalveee)，让 pod 能在 extension 间工作的 [@k_katsumi](https://twitter.com/k_katsumi)，帮助我集成 [Realm Mobile Platform](https://realm.io/products/realm-mobile-platform/) 的 [@TimOliverAU](https://twitter.com/TimOliverAU)（当然，还有些后续处理）。
+我自己还没独立做过 CocoaPods，更别说还是要依赖 Realm 的，所以我花了很多时间收集梳理。感谢带我入门的 [@aaalveee](https://twitter.com/aaalveee)，让 pod 能在 extension 之间工作的 [@k_katsumi](https://twitter.com/k_katsumi)，帮我集成 [Realm Mobile Platform](https://realm.io/products/realm-mobile-platform/) 的 [@TimOliverAU](https://twitter.com/TimOliverAU)（当然，还有些后续处理）。
 
 虽然过程很困难（到现在都还有些工作没做），但是能有这样的结果我已经非常开心了。你可以在 [GitHub](https://github.com/tryswift/trySwiftData) 上看到 **trySwiftData** 这个框架。框架中最让我满意的地方，是格式化数据的这部分代码，比如，每个话题的标题为演讲者 + 描述，以前处理这个的代码就重复散落在 iOS 和 watchOS 上。我们甚至可以使用同一个 pod 添加有时间限制的 Widget。
 
