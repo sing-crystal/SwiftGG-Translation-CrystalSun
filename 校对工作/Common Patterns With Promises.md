@@ -12,12 +12,12 @@ description:
 作者=Soroush Khanlou
 原文日期=2016/8/8
 译者=Cwift
-校对=
+校对=Crystal Sun
 
 <!--此处开始正文-->
-> 译者注：由于原文的 Swift 版本较旧，文中所示的代码已根据作者编写的开源库 Promise 更新到最新版本。
- 
-上周，我写了一篇[介绍 Promise 的文章](http://swift.gg/2017/03/27/promises-in-swift/)，Promise 是处理异步操作的高阶模块。只需要使用 `fulfill()`、`reject()` 和 `then()` 等函数，就可以通过简单和自由组合的方式构建大量的功能。本文会展示我在 Promise 方面的一些探索。
+> 译者注：英文原文发布时间较早，故原文代码中的 Swift 版本较旧，但是作者已将 GitHub 上的 [Promise 示例代码](https://github.com/khanlou/Promise)更新到了最新 Swift 版本，所以译者在翻译本文时，将文章里的代码按照 GitHub 上的示例代码进行了替换，更新成了最新版本的 Swift 代码。
+
+上周，我写了一篇[介绍 Promise 的文章](http://swift.gg/2017/03/27/promises-in-swift/)，Promise 是处理异步操作的高阶模块。只需要使用 `fulfill()`、`reject()` 和 `then()` 等函数，就可以简单自由地构建大量的功能。本文会展示我在 Promise 方面的一些探索。
 
 ### Promise.all
 `Promise.all` 是其中的典型，它保存所有异步回调的值。这个静态函数的作用是等待所有的 Promise 执行 fulfill（履行） ，一旦全部执行完毕，`Promise.all` 会使用所有履行后的值组成的数组对自己执行 fulfill。例如，你可能想在代码中对数组中的每个元素打点以捕获某个 API 的完成状态。使用 `map` 和 `Promise.all` 很容易实现：
@@ -53,7 +53,7 @@ for promise in promises {
     })
 }
 ```
-只有当所有的 Promise 都执行成功，才可以 `fulfill` 高阶的 Promise。简单地检查以确保没有一个 Promise 被拒绝或者挂起，并使用一点点 `flatMap` 的魔法，就可以对 Promise 的组合执行 fulfill 操作了。完整的方法如下：
+只有当所有的 Promise 都执行成功，才可以 `fulfill` 高阶的 Promise。检查一下以确保没有一个 Promise 被拒绝或者挂起，使用一点点 `flatMap` 的魔法，就可以对 Promise 的组合执行 fulfill 操作了。完整的方法如下：
 
 ```swift
 public static func all<T>(_ promises: [Promise<T>]) -> Promise<[T]> {
@@ -130,7 +130,7 @@ public func addTimeout(_ timeout: TimeInterval) -> Promise<Value> {
     return Promise.race(Array([self, Promise<Value>.timeout(timeout)]))
 }
 ```
-你可以在正常的 Promise 链中使用它，像下面这样：
+可以在正常的 Promise 链中使用它，像下面这样：
 
 ```swift
 APIClient
