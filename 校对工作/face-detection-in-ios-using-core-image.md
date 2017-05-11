@@ -13,26 +13,26 @@ description:
 作者=Gregg Mojica
 原文日期=2016-09-06
 译者=智多芯
-校对=
+校对=Crystal Sun
 定稿=
 
 <!--此处开始正文-->
 
 Core Image 是 Cocoa Touch 框架提供的功能强大的 API，是 iOS SDK 中常常被忽视的关键部件。本教程将尝试探索 Core Image 提供的人脸识别功能，并将其应用到 iOS App 中。
 
-> 注：这是中高级 iOS 教程，本教程假设你已经使用过类似 UIImagePicker，Core Image 等技术。如果你对这些还不熟悉，先看看[我们的 iOS 教程系列](http://www.appcoda.com/ios-programming-course)，等你准备好了再重新回到这里。
+> 注：这是中高级 iOS 教程，本教程假设你已经使用过类似 UIImagePicker，Core Image 等技术。如果你对这些还不熟悉，先看看[我们的 iOS 教程系列](http://www.appcoda.com/ios-programming-course)，等你准备好了再看这篇文章。
 
 # 接下来要做的事
 
-自从 iOS 5（大概在2011年左右）之后，人脸识别在 iOS 上其实一直是支持的，只是经常被忽视。人脸识别 API 让开发者不仅可以进行人脸检测，还能够用来识别诸如微笑或者眨眼等表情。
+自从 iOS 5（大概在2011年左右）之后，iOS 开始支持人脸识别，只是用的人不多。人脸识别 API 让开发者不仅可以进行人脸检测，还能识别微笑、眨眼等表情。
 
-首先通过创建一个简单的应用来探索下 Core Image 提供的人脸识别技术，该应用可以识别出照片中的人脸并用方框将人脸框起来。在第二个例子创建的应用中，用户可以拍照并检测照片上是否有人脸出现，如果有则提取人脸坐标。通过这两个例子，你将学会 iOS 上所有关于人脸识别的技术并充分利用它强大却经常被忽视的功能。
+首先创建一个简单的应用，探索一下 Core Image 提供的人脸识别技术，该应用可以识别出照片中的人脸并用方框将人脸框起来。在第二个例子中，用户可以拍照并检测照片上是否有人脸出现，如果有则提取人脸坐标。通过这两个例子，你将学会 iOS 上所有关于人脸识别的技术，并充分利用它强大却经常被忽视的功能。
 
 下面开始吧！
 
-# 对项目进行设置
+# 设置工程
 
-[下载](https://github.com/appcoda/FaceDetector/raw/master/FaceDetectorStarter.zip)并在 Xcode 中打开起始项目。该工程中的 Storyboard 仅包含一个已连接到代码的 IBOutlet 和 imageView。
+[下载](https://github.com/appcoda/FaceDetector/raw/master/FaceDetectorStarter.zip)并在 Xcode 中打开起始工程。该工程中的 Storyboard 仅包含一个已连接到代码的 IBOutlet 和 imageView。
 
 ![](http://www.appcoda.com/wp-content/uploads/2016/09/face-detection-storyboard.jpg)
 
@@ -44,9 +44,9 @@ Core Image 是 Cocoa Touch 框架提供的功能强大的 API，是 iOS SDK 中�
 import CoreImage
 ```
 
-# 使用 Core Image 实现人脸检测
+# 用 Core Image 实现人脸检测
 
-在起始项目的 storyboard 里已经包含一个通过 IBOutlet 连接到代码中的 imageView。下一步将实现人脸检测的代码。先把以下代码加入 swift 文件中，后面再解释：
+在起始工程的 storyboard 里包含一个通过 IBOutlet 连接到代码中的 imageView。下一步将实现人脸检测的代码。先把以下代码加入 swift 文件中，后面再解释：
 
 ```swift
 func detect() {
@@ -92,7 +92,7 @@ func detect() {
 * 第 20 行：最后，将该视图添加到 `personPic` 视图中。
 * 第 22-28 行：这些 API 不仅可以检测出人脸，还能检测出人脸的左右眼，但本文就不在图像中高亮人眼了。本文只想展示一些 `CIFaceFeature` 的相关属性。
 
-接着调用在 `viewDidLoad `中调用  `detect` 方法：
+接着调用在 `viewDidLoad `中调用  `detect` 方法，在方法中增加下列一行代码：
 
 ```swift
 detect()
@@ -107,6 +107,8 @@ detect()
 ```swift
 Found bounds are (177.0, 415.0, 380.0, 380.0)
 ```
+
+还有几个问题没有处理：
 
 * 人脸识别程序应用于原始图像上，而原始图像有着比 imageView 更高的分辨率。另外，工程中 imageView 的 content mode 被设置为 aspect fit。为了正确地画出检测框，还需要计算出 imageView 中识别到的人脸的实际位置和尺寸。
 * 再者，Core Image 和 UIView（或者UIKit）使用了不同的坐标系（如下图所示），因此还需要实现 Core Image 坐标到 UIView 坐标的转换。
@@ -125,7 +127,7 @@ func detect() {
     let faceDetector = CIDetector(ofType: CIDetectorTypeFace, context: nil, options: accuracy)
     let faces = faceDetector?.features(in: personciImage)
     
-    // For converting the Core Image Coordinates to UIView Coordinates
+    // 将 Core Image 坐标转换成 UIView 坐标
     let ciImageSize = personciImage.extent.size
     var transform = CGAffineTransform(scaleX: 1, y: -1)
     transform = transform.translatedBy(x: 0, y: -ciImageSize.height)
@@ -133,10 +135,10 @@ func detect() {
     for face in faces as! [CIFaceFeature] {
         print("Found bounds are \(face.bounds)")
         
-        // Apply the transform to convert the coordinates
+        // 实现坐标转换
         var faceViewBounds = face.bounds.applying(transform)
         
-        // Calculate the actual position and size of the rectangle in the image view
+        // 计算实际的位置和大小
         let viewSize = personPic.bounds.size
         let scale = min(viewSize.width / ciImageSize.width,
                         viewSize.height / ciImageSize.height)
@@ -167,15 +169,15 @@ func detect() {
 
 首先，上面的代码使用放射变换将 Core Image 坐标转换成了 UIKit 坐标。然后，添加了一些额外的代码用于计算框视图的实际位置和尺寸。
 
-现在再一次运行程序应该可以看到检测框将识别出的人脸框起来了，这样就成功地使用 Core Image 检测到人脸了。
+现在再一次运行程序，应该可以看到检测框将识别出的人脸框起来了，这样就成功地用 Core Image 检测到人脸了。
 
 ![](http://www.appcoda.com/wp-content/uploads/2016/09/face-detection-result-1240x809.jpg)
 
 # 开发一个支持人脸识别的摄像应用
 
-假设有一个用于摄像或拍照的应用程序，我们希望在拍照后检测是否有人脸出现。如果出现了人脸，可能你想将这张照片打上一些标签并对其分类。下面结合 `UIImagePicker` 类，当拍照完成时立刻运行上面的人脸检测代码。
+假设有一个用于摄像或拍照的应用程序，我们希望在拍照后检测是否有人脸出现。如果出现了人脸，可能想将这张照片打上一些标签并对其分类。下面结合 `UIImagePicker` 类，拍照完成时立刻运行上面的人脸检测代码。
 
-在上面的起始项目中已经创建了一个 `CameraViewController` 类，将其代码更新成下面这样，用以实现摄像功能：
+上面的起始工程中已经创建了一个 `CameraViewController` 类，将其代码更新成下面这样，用以实现摄像功能：
 
 ```swift
 class CameraViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
@@ -259,7 +261,7 @@ func detect() {
 
 CIFaceFeature 中的一些属性和方法前面已经尝试过了。例如，若要判断照片中的人是否正在微笑，可以通过 `hasSmile` 属性判断。还可以通过 `hasLeftEyePosition`  （或`hasRightEyePosition`）属性检查是否有左眼（或右眼）出现（希望有）。
 
-还可以通过 `hasMouthPosition` 来判断是否出现了嘴。如果出现了，可以通过 `mouthPosition` 属性得到其坐标，代码如下：
+还可以通过 `hasMouthPosition` 来判断是否出现了嘴巴。如果出现了，可以通过 `mouthPosition` 属性得到其坐标，代码如下：
 
 ```swift
 if (face.hasMouthPosition) {
@@ -269,25 +271,15 @@ if (face.hasMouthPosition) {
 
 如你所见，通过 Core Image 进行人脸识别极其简单。除了检测嘴、微笑、眼睛位置等，还可以通过 `leftEyeClosed` （或`rightEyeClosed`）判断左眼（或右眼）是否睁开。
 
-> ## Wrapping Up
->
-> In this tutorial, we explored Core Image’s Face Detection APIs and how to use this in a camera app. We setup a basic UIImagePicker to snap a photo and detect whether a person present in an image or not.
->
-> As you can see, Core Image’s face detection is a powerful API with many applications! I hope you found this tutorial useful and an informative guide to this less known iOS API!
->
-> NOTE:  for our tutorial series on neural nets, the technology that powers facial detection!
->
-> Feel free to download the final project [here](https://github.com/appcoda/FaceDetector).
-
 # 结语
 
 本教程探索了 Core Image 提供的人脸识别 API，并展示了如何在摄像机应用中使用该功能。本文通过 UIImagePicker 拍摄图像，并检测该图像中是否有人的出现。
 
-如你所见，Core Image 的人脸识别 API 有着非常多的应用！希望你觉得本教程有所帮助，让你了解到了这一鲜为人知的 iOS API！
+如你所见，Core Image 的人脸识别 API 有着非常多的用处！希望你能觉得本教程有所帮助，让你了解到了这一鲜为人知的 iOS API！
 
 >  注：欢迎继续关注让人脸识别更加强大的[神经网络系列教程](https://www.appcoda.com/tag/neural-net/)。
 
-你可以从[这里](https://github.com/appcoda/FaceDetector)下载到最终的项目代码。
+你可以从[这里](https://github.com/appcoda/FaceDetector)下载到最终的工程代码。
 
 
 
