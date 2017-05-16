@@ -8,15 +8,15 @@ custom_title:
 description: 
 ---
 原文链接=https://www.uraimo.com/2016/10/27/unowned-or-weak-lifetime-and-performance/
-者=Umberto Raimondi
+作者=Umberto Raimondi
 原文日期=2016-10-27
 译者=shanks
 校对=Crystal Sun
 定稿=
 
-每当处理循环引用（retain cycles）时，需要考量对象生命周期来选择`unowned`或者`weak`标识符已经成为了一个共识。但是有时仍然会心存疑问，在具体的使用中应该选择哪一个，或者退一步讲，保守的只使用 weak 是不是一个好的选择呢？
+每当处理循环引用（retain cycles）时，需要考量对象生命周期来选择`unowned`或者`weak`标识符，这已经成为了一个共识。但是有时仍然会心存疑问，在具体的使用中应该选择哪一个，或者退一步讲，保守的只使用 weak 是不是一个好的选择呢？
 
-本文首先对循环引用的基础知识做一个简要介绍，然后将会分析 Swift 源代码的一些片段，讲解`unowned`和`weak`在生命周期和性能上的差异点，希望看完本文以后，在的使用场景中，能选择使用正确的弱引用类型。
+本文首先对循环引用的基础知识做一个简要介绍，然后会分析 Swift 源代码的一些片段，讲解 `unowned` 和 `weak`  在生命周期和性能上的差异点，希望看完本文以后，在的使用场景中，能使用正确的弱引用类型。
 
 
 **目录:**
@@ -24,7 +24,7 @@ description:
 * [基础知识](#the_basic)
 * [问题来了: unowened 还是 weak?](#the_question_unowned_or_weak)
 * [性能：深度探索](#performance_a_look_under_the_hood)
- * [捕获列表处理解析](#deconstructing_capture_lists_handling)
+* [捕获列表处理解析](#deconstructing_capture_lists_handling)
 * [结论](#conclusion)
 * [脚注](#footnotes)
 
@@ -33,7 +33,7 @@ description:
 <a name="the_basic"></a>
 ### 基础知识
 
-众所周知，Swift 利用古老并且有效的自动引用计数(ARC, Automatic Reference Counting)来管理内存，带来的后果和在 Objective-C 中使用的情况类似，需要手动使用弱引用来解决循环引用问题。
+众所周知，Swift 利用古老并且有效的自动引用计数（ARC, Automatic Reference Counting）来管理内存，带来的后果和在 Objective-C 中使用的情况类似，需要手动使用弱引用来解决循环引用问题。
 
 如果对 ARC 不了解，只需要知道的是，每一个*引用类型*实例都有一个引用计数与之关联，这个引用计数用来记录这个对象实例正在被变量或常量引用的总次数。当引用计数变为 0 时，实例将会被析构，实例占有的内存和资源都将变得重新可用。
 
@@ -51,7 +51,7 @@ description:
 
 在 Objective-C，按照标准的做法，定义一个弱引用指向闭包外部的实例，然后在闭包内部定义强引用指向这个实例，在闭包执行期间使用它。当然，有必要在使用前检查引用的有效性。
 
-为了更方便的处理循环引用，Swift 引入了一个新的概念，用于简化和更加明显地表达在闭包内部外部变量的捕获：*捕获列表*。使用捕获列表，可以在函数的头部定义和指定那些需要用在内部的外部变量，并且指定引用类型(译者注：这里是指 unowned 和 weak）。
+为了更方便的处理循环引用，Swift 引入了一个新的概念，用于简化和更加明显地表达在闭包内部外部变量的捕获：*捕获列表（capture list）*。使用捕获列表，可以在函数的头部定义和指定那些需要用在内部的外部变量，并且指定引用类型(译者注：这里是指 unowned 和 weak）。
 
 接下来举一些例子，在各种情况下捕获变量的表现。
 
@@ -79,12 +79,12 @@ var fCopy = { [i1] in
 }
 
 fStrong()
-print(i1,i2) //Prints 2 and 3  
+print(i1,i2) //打印结果是 2 和 3  
 
-fCopy()  //Prints 1 and 3
+fCopy()  //打印结果是 1 和 3
 ```
 
-在上面的例子中，在调用`fStrong`之前定义函数`fCopy`,在该函数定义的时候，私有常量已经被创建了。正如你所看到的，当调用第二个函数时候，仍然打印`i1`的原始值。
+在上面的例子中，在调用 `fStrong` 之前定义函数 `fCopy` ,在该函数定义的时候，私有常量已经被创建了。正如你所看到的，当调用第二个函数时候，仍然打印 `i1` 的原始值。
 
 对于外部引用类型的变量，在捕获列表中指定 `weak` 或 `unowned`，这个常量将会被初始化为一个弱引用，指向原始值，这种指定的捕获方式就是用来处理循环引用的方式。
 
@@ -112,9 +112,8 @@ print(c1.value,c2.value) //Prints 2 and 2
 
 unowned 引用使用的场景是，原始实例永远不会为 *nil*，闭包可以直接使用它，并且直接定义为显式解包可选值。当原始实例被析构后，在闭包中使用这个捕获值将导致崩溃。
 
-如果捕获原始实例在使用过程中可能为*nil*时，必须将引用声明为`weak`， 并且在使用之前验证这个引用的有效性。
+如果捕获原始实例在使用过程中可能为 *nil* ，必须将引用声明为 `weak`， 并且在使用之前验证这个引用的有效性。
 
-TODO：To be checked below
 <a name="the_question_unowned_or_weak"></a>
 ### 问题来了: unowened 还是 weak?
 
@@ -126,16 +125,16 @@ TODO：To be checked below
 
 有两个可能出现的场景：
 
-* 闭包和捕获对象的生命周期相同，所以对象可以被访问，也就意味着闭包也可以被访问。外部对象和闭包有相同的生命周期(比如：对象和它的父对象的简单返回引用）。在这种情况下，你应该把引用定义为**unowned**。
+* 闭包和捕获对象的生命周期相同，所以对象可以被访问，也就意味着闭包也可以被访问。外部对象和闭包有相同的生命周期(比如：对象和它的父对象的简单返回引用）。在这种情况下，你应该把引用定义为 **unowned**。
 
  一个经典的案例是: `[unowned self]`, 主要用在闭包中，这种闭包主要在他们的父节点上下文中做一些事情，没有在其他地方被引用或传递，不能作用在父节点之外。
 
 
-* 闭包的生命周期和捕获对象的生命周期相互独立，当对象不能再使用时，闭包依然能够被引用。这种情况下，你应该把引用定义为`weak`，并且在使用它之前验证一下它是否为`nil`（请不要对它进行强制解包).
+* 闭包的生命周期和捕获对象的生命周期相互独立，当对象不能再使用时，闭包依然能够被引用。这种情况下，你应该把引用定义为 `weak`，并且在使用它之前验证一下它是否为 `nil`（请不要对它进行强制解包).
 
  一个经典的案例是: `[weak delegate = self.delegate!]`，可以在某些使用闭包的场景中看到，闭包使用的是完全无关（生命周期独立）的代理对象。
 
-当无法确认两个对象之间生命周期的关系时，是否不应该去冒险选择一个无效`unowned`引用？而是保守选择`weak`引用是一个更好的选择？
+当无法确认两个对象之间生命周期的关系时，是否不应该去冒险选择一个无效 `unowned` 引用？而是保守选择 `weak` 引用是一个更好的选择？
 
 答案是否定的，不仅仅是因为对象生命周期了解是一件必要的事情，而且这两个修饰符在性能特性上也有很大的不同。
 
@@ -145,23 +144,23 @@ TODO：To be checked below
 
 这种实现有实际的开销，考虑到需要额外实现的数据结构，需要确保在并发访问情况下，对这个全局引用结构所有操作的正确性。一旦析构过程开始了，在任何环境中，都不允许访问弱引用所指向的对象了。
 
-弱引用（包括`unowned`和一些变体的`weak`)在 Swift 使用了更简单和快速的实现机制。
+弱引用（包括 `unowned` 和一些变体的 `weak`)在 Swift 使用了更简单和快速的实现机制。
 
 Swift 中的每个对象保持了两个引用计数器，一个是强引用计数器，用来决定 ARC 什么时候可以安全地析构这个对象，另外一个附加的弱引用计数器，用来计算创建了多少个指向这个对象的 `unowned` 或者 `weak` 引用，当这个计数器为零时，这个对象将被*析构*。
 
-需要重点理解的是，只有等到所有`unowned`引用被释放后，这个对象才会被真正地析构，然后对象将会保持未解析可访问状态，当析构发生后，对象的内容才会被回收。
+需要重点理解的是，只有等到所有 `unowned` 引用被释放后，这个对象才会被真正地析构，然后对象将会保持未解析可访问状态，当析构发生后，对象的内容才会被回收。
 
-每当`unowned`引用被定义时，对应的`unowned`引用计数会进行原子级别地增加(使用[原子gcc/llvm操作](http://llvm.org/docs/Atomics.html#libcalls-atomic)，进行一系列快速且线程安全的基本操作，例如：增加，减少，比较，交换等)，以保证线程安全。在增加计数之前，会检查强引用计数以确保对象是有效的。
+每当 `unowned` 引用被定义时，对应的 `unowned` 引用计数会进行原子级别地增加(使用[原子gcc/llvm操作](http://llvm.org/docs/Atomics.html#libcalls-atomic)，进行一系列快速且线程安全的基本操作，例如：增加，减少，比较，交换等)，以保证线程安全。在增加计数之前，会检查强引用计数以确保对象是有效的。
 
-试图访问一个无效的对象，将会导致错误的断言，你的应用在运行时中会报错(这就是为什么这里的`unownd`实现方式叫做`unowned(safe)`实现)
+试图访问一个无效的对象，将会导致错误的断言，你的应用在运行时中会报错(这就是为什么这里的 `unownd` 实现方式叫做 `unowned(safe)` 实现)
 
-为了更好的优化，应用编译时带有`-OFast`, `unowned`引用不会去验证引用对象的有效性，`unowned`引用的行为就会像Objective-C中的`__unsafe_unretained`一样。如果引用对象无效，`unowned`引用将会指向已经释放垃圾内存(这种实现称之`unowned(unsafe)`)。
+为了更好的优化，应用编译时带有 `-OFast`, `unowned` 引用不会去验证引用对象的有效性，`unowned`引用的行为就会像Objective-C中的 `__unsafe_unretained`一样。如果引用对象无效，`unowned` 引用将会指向已经释放垃圾内存（这种实现称之 `unowned(unsafe)`）。
 
-当一个`unowned`引用被释放后，如果这时没有其他强引用或`unowned`引用指向这个对象，那么最终这个对象将被析构。这就是为什么一个引用对象不能在强引用计数器等于零的情况下，被析构的原因，所有的引用计数器必须能够被访问用来验证`unowned`引用和强引用数量。
+当一个 `unowned` 引用被释放后，如果这时没有其他强引用或 `unowned` 引用指向这个对象，那么最终这个对象将被析构。这就是为什么一个引用对象不能在强引用计数器等于零的情况下，被析构的原因，所有的引用计数器必须能够被访问用来验证 `unowned` 引用和强引用数量。
 
-Swift 的`weak`引用添加了附加层，间接地把`unowned`引用包裹到了一个可选容器里面，在指向的对象析构之后变成空的情况下，这样处理会更加的清晰。但是需要付出的代价是，附加的机制需要正确地处理可选值。
+Swift 的 `weak` 引用添加了附加层，间接地把 `unowned` 引用包裹到了一个可选容器里面，在指向的对象析构之后变成空的情况下，这样处理会更加的清晰。但是需要付出的代价是，附加的机制需要正确地处理可选值。
 
-考虑到以上因素，在对象关系生命周期允许的情况下，**优先选择**使用`unowned`引用。但是这不是此故事的结局，接下来比较一下两者性能<sup>[1](#1)</sup>上的差别。
+考虑到以上因素，在对象关系生命周期允许的情况下，**优先选择**使用 `unowned` 引用。但是这不是此故事的结局，接下来比较一下两者性能<sup>[1](#1)</sup>上的差别。
 
 <a name="performance_a_look_under_the_hood"></a>
 ### 性能：深度探索
@@ -170,20 +169,19 @@ Swift 的`weak`引用添加了附加层，间接地把`unowned`引用包裹到�
 
 接下来试着简要介绍本文所需要的必备知识点，如果想了解更多，将在最后的脚注中找到一些有用的链接。
 
-使用一个图来解释*swiftc*整个编译过程的包含的模块：
+使用一个图来解释 *swiftc* 整个编译过程的包含的模块：
 
 ![](https://www.uraimo.com/imgs/swiftc.png)
 
-Swiftc 和*clang*一样构建在 LLVM 上，遵循*clang*编译器相似的编译流程。
+Swiftc 和 *clang* 一样构建在 LLVM 上，遵循*clang*编译器相似的编译流程。
 
 在编译过程的第一部分，使用一个特定语言前端进行管理，swift 源代码被解释生成一个抽象语法树(AST)表达<sup>[2](#2)</sup>，然后抽象语法树的结果从语义角度进行分析，找出语义错误。
 
-在这个点上，对于其他的基于 LLVM 的编译器来讲，在通过一个附加步骤对源代码进行静态分析后（必要时可以显示错误和警告），接着 *IRGen* 模块 会把 AST 的内容会转换成一个轻量的和底层的机器无关的表示，我们称之为 [LLVM IR](![](https://www.uraimo.com/imgs/unownedbig.png)
-)(LLVM 中间表示)。
+在这个点上，对于其他的基于 LLVM 的编译器来讲，在通过一个附加步骤对源代码进行静态分析后（必要时可以显示错误和警告），接着 *IRGen* 模块 会把 AST 的内容会转换成一个轻量的和底层的机器无关的表示，我们称之为 [LLVM IR](http://llvm.org/docs/LangRef.html)(LLVM 中间表示)。
 
 尽管两个模块都需要做一些相同检查，但是这两个模块是区分开的，在两个模块之间也存在许多重复的代码。
 
-IR 是一种[静态单赋值形式](https://en.wikipedia.org/wiki/Static_single_assignment_form)(SSA-form)一致语言，可以看做注入了 LLVM 的虚拟机下的 RISC 类型[汇编语言](https://idea.popcount.org/2013-07-24-ir-is-better-than-assembly/)。基于 SSA 将简化接下来的编译过程，从语言前端提供的中间表达会在 IR 进行多重优化。
+IR 是一种[静态单赋值形式](https://en.wikipedia.org/wiki/Static_single_assignment_form)（SSA-form）一致语言，可以看做注入了 LLVM 的虚拟机下的 RISC 类型[汇编语言](https://idea.popcount.org/2013-07-24-ir-is-better-than-assembly/)。基于 SSA 将简化接下来的编译过程，从语言前端提供的中间表达会在 IR 进行多重优化。
 
 需要重点注意的是，IR其中一个特点是，它具有三种不同的形式：内存表达（内部使用），序列化位代码形式（你已经知道的[位代码形式](https://developer.apple.com/library/tvos/documentation/IDEs/Conceptual/AppDistributionGuide/AppThinning/AppThinning.html)）和可读形式。
 
@@ -226,7 +224,7 @@ var fSpec = {
 fSpec()
 ```
 
-通过`xcrun swiftc -emit-sil sample.swift`编译 swift 源代码，生成标准化 SIL 代码。原始SIL 可以使用`-emit-silgen`选项来生成。
+通过 `xcrun swiftc -emit-sil sample.swift` 编译 swift 源代码，生成标准化 SIL 代码。原始SIL 可以使用 `-emit-silgen` 选项来生成。
 
 运行以上命令以后，会发现 swiftc 产生了许多代码。通过查看 swiftc 输出代码的片段，学习一下基本的 SIL 指令，理解整个结构。
 
@@ -263,14 +261,14 @@ sil_global hidden @_Tv4sample5fSpecFT_T_ : $@callee_owned () -> ()
 
 /*
   层次作用域定义表示原始代码的位置。
-  每个 SIL 指示将会指向它生成的`sil_scope `。
+  每个 SIL 指示将会指向它生成的 `sil_scope`。
 */
 sil_scope 1 {  parent @main : $@convention(c) (Int32, UnsafeMutablePointer<Optional<UnsafeMutablePointer<Int8>>>) -> Int32 }
 sil_scope 2 { loc "sample.swift":14:1 parent 1 }
 
 /*
-	自动生成的@main函数包含了我们原始全部作用域的代码。
- 	这里沿用了熟悉的 c main()函数结构，接收参数个数和参数数组两个输入，这个函数遵循 c 调用约定。
+	自动生成的 @main 函数包含了我们原始全部作用域的代码。
+ 	这里沿用了熟悉的 c main() 函数结构，接收参数个数和参数数组两个输入，这个函数遵循 c 调用约定。
   	这个函数包含了需要调用闭包的指令。
 */
 // main
@@ -549,7 +547,7 @@ bb3:                                              // Preds: bb1 bb2
 * **unowned_release**：*减少对象的 unowned 引用计数。当整个强引用计数和 unowned 引用计数都为 0 时，对象的内存才会被释放。*
 
 
-接下来深入到 Swift 运行时看看，这些指令都是如何被实现的，相关的代码文件有：[HeapObject.cpp](https://github.com/apple/swift/blob/master/stdlib/public/runtime/HeapObject.cpp)，[HeapObject.h](https://github.com/apple/swift/blob/master/include/swift/Runtime/HeapObject.h)，[RefCount.h](https://github.com/apple/swift/blob/master/stdlib/public/SwiftShims/RefCount.h) 和 [Heap.cpp](https://github.com/apple/swift/blob/master/stdlib/public/runtime/Heap.cpp)、 [SwiftObject.mm](https://github.com/apple/swift/blob/master/stdlib/public/runtime/SwiftObject.mm)中的少量定义。容器实现可以在[MetadataImpl.h](https://github.com/apple/swift/blob/master/stdlib/public/runtime/MetadataImpl.h)找到，但是本文不展开讨论。
+接下来深入到 Swift 运行时看看，这些指令都是如何被实现的，相关的代码文件有：[HeapObject.cpp](https://github.com/apple/swift/blob/master/stdlib/public/runtime/HeapObject.cpp)，[HeapObject.h](https://github.com/apple/swift/blob/master/include/swift/Runtime/HeapObject.h)，[RefCount.h](https://github.com/apple/swift/blob/master/stdlib/public/SwiftShims/RefCount.h) 和 [Heap.cpp](https://github.com/apple/swift/blob/master/stdlib/public/runtime/Heap.cpp)、 [SwiftObject.mm](https://github.com/apple/swift/blob/master/stdlib/public/runtime/SwiftObject.mm) 中的少量定义。容器实现可以在 [MetadataImpl.h](https://github.com/apple/swift/blob/master/stdlib/public/runtime/MetadataImpl.h) 找到，但是本文不展开讨论。
 
 这些文件中定义大多数的 ARC 方法都有三种变体，一种是对 Swift 对象的基础实现，另外两种实现是针对非原生 Swift 对象的：桥接对象和未知对象。后面两种变体这里不予讨论。
 
@@ -649,9 +647,9 @@ HeapObject *swift::swift_weakLoadStrong(WeakReference *ref) {
 
 在这个实现中，获取一个强引用需要[更多复杂同步操作](https://github.com/apple/swift/pull/1454)，在多线程竞争严重的情况下，会带来性能损耗。
 
-在这里第一次出现的`WeakReference`对象，是一个简单的结构体，包含一个整型值字段指向目标对象，目标对象是使用`HeapObject`类来承载的每一个运行时的 Swift 对象。 
+在这里第一次出现的 `WeakReference` 对象，是一个简单的结构体，包含一个整型值字段指向目标对象，目标对象是使用 `HeapObject` 类来承载的每一个运行时的 Swift 对象。 
 
-在 weak 引用询问当前线程设置的`WR_READING `标识之后，从 `WeakReference` 容器中获取 Swift 对象，如果对象不再有效，或者在等待获取资源时，它变成可以进行析构，当前的引用会被设置为 *null*。
+在 weak 引用询问当前线程设置的 `WR_READING ` 标识之后，从  `WeakReference`  容器中获取 Swift 对象，如果对象不再有效，或者在等待获取资源时，它变成可以进行析构，当前的引用会被设置为 *null*。
 
 如果对象依然有效，获取对象的尝试将会成功。
 
@@ -659,14 +657,15 @@ HeapObject *swift::swift_weakLoadStrong(WeakReference *ref) {
 
 <a name="conclusion"></a>
 ### 结论
-保守的使用 weak 引用是否明智呢？答案是否定的，无论是从性能的角度还是代码清晰的角度。
-使用正确的捕获修饰符类型，会显式的表明代码中的生命周期特性，并且当其他人或者你自己在读这段代码时能更难产生误导。
+保守的使用 weak 引用是否明智呢？答案是否定的，无论是从性能的角度还是代码清晰的角度而言。
+
+使用正确的捕获修饰符类型，明确的表明代码中的生命周期特性，当其他人或者你自己在读你的代码时不容易误解。
 
 <a name="footnotes"></a>
 ### 脚注
 
 <a name="1"></a>
-1、*苹果第一次讨论 weak/unowned 争议可以查看[这里](https://devforums.apple.com/message/987086#987086)，后面在 twitter 上 Joe Groff 的对此也进行了讨论，并且被 Michael Tsai [总结成文](http://mjtsai.com/blog/2015/11/24/how-swift-implements-unowned-and-weak-references/)。
+1、*苹果第一次讨论 weak/unowned 争议可以查看[这里](https://devforums.apple.com/message/987086#987086)，之后在 twitter 上 Joe Groff 对此也进行了讨论，并且被 Michael Tsai [总结成文](http://mjtsai.com/blog/2015/11/24/how-swift-implements-unowned-and-weak-references/)。
 这篇文章从意图角度出发，提供了完整并且可操作的解释。*
 
 <a name="2"></a>
@@ -677,7 +676,7 @@ HeapObject *swift::swift_weakLoadStrong(WeakReference *ref) {
 3、*关于 SIL 的更多信息，请查看详尽的[官方 SIL 指南](https://github.com/apple/swift/blob/master/docs/SIL.rst)，还有 2015 LLVM 开发者会议的[视频](https://www.youtube.com/watch?v=Ntj8ab-5cvE)。Lex Chou 写的 SIL 快速指南可以点击这里[查看](https://github.com/lexchou/swallow/tree/master/docs/en/sil-3-instruction-references)。 *
 
 <a name="4"></a>
-4、*查看在 Swift 中如何进行名称粉碎(name mangling)的细节，请查看 Lex Chou 的[这篇文章](https://github.com/lexchou/swallow/tree/master/docs/en/sil-1-mangling)。*
+4、*查看在 Swift 中如何进行名称粉碎（name mangling）的细节，请查看 Lex Chou 的[这篇文章](https://github.com/lexchou/swallow/tree/master/docs/en/sil-1-mangling)。*
 
 <a name="5"></a>
 5、*Mike Ash 在他的 Friday Q&A 中的[一篇文章](https://www.mikeash.com/pyblog/friday-qa-2015-12-11-swift-weak-references.html)中讨论了如何实现 weak 引用的一种实践方法，这种方法与目前 Swift 的方法对比起来有一些过时，但是其中的解释依然值得参考。*
