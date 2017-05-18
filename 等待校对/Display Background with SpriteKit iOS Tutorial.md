@@ -69,5 +69,4 @@ Sprite Kit 框架有个指定的类来创建控制 sprite（精灵）（译者�
 
 
 
-
 可以从 [github](https://github.com/ioscreator/ioscreator) 上下载 **SpriteKitBackgroundTutorial** 教程的源代码。
