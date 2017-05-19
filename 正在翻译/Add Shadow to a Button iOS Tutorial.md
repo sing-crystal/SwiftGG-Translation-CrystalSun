@@ -19,7 +19,7 @@ description:
 
 <!--此处开始正文-->
 
-借助 Social Framework，可以给自己的 App 添加社交网络分享的功能。在本节教程中，将使用 social framework 往 Facebook 上发布一条状态。本节教程使用的是 Xcode 8.3 和 iOS 10.3。
+本节教程使用的是 Xcode 8.3 和 iOS 10.3。
 
 ### 设置工程
 
@@ -27,7 +27,7 @@ description:
 
 ![](https://static1.squarespace.com/static/52428a0ae4b0c4a5c2a2cede/t/58ff88928419c2b2a27d0754/1493141675229/single-view-xcode-template?format=1500w)
 
-Product Name 使用 **IOS10FacebookTutorial**，填写自己的 Organization Name 和 Organization Identifier，Language 一栏选择 Swift，Devices 一栏选择 iPhone。
+Product Name 使用 **IOS10Tutorial**，填写自己的 Organization Name 和 Organization Identifier，Language 一栏选择 Swift，Devices 一栏选择 iPhone。
 
 ![](https://static1.squarespace.com/static/52428a0ae4b0c4a5c2a2cede/t/58ff88c71b10e3c8c1dc6a0d/1493141718478/facebook-project?format=1500w)
 
